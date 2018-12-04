@@ -15,12 +15,12 @@ int main() {
   cout << "Enter the name of problem ";
   getline(cin, problem);
   while(!(problem[0] >= 'A' && problem[0] <= 'Z' || problem[0] >= 'a' && problem[0] <= 'z')) {
-    cout<<"\nEnter the name of problem ";
+    cout<<"\nwrong name of problem ";
     getline(cin, problem);
   }
-  
-  int criteriaAmount, subcriteriaAmount, alternativeAmount;
+
   //ввод основных данных
+  int criteriaAmount, subcriteriaAmount, alternativeAmount;
   enterBasicData(criteriaAmount, subcriteriaAmount, alternativeAmount);
 
   //создание массива оценки критериев
@@ -91,7 +91,7 @@ int main() {
   for(int i = 0; i < alternativeAmount; i++) {
     globalPriorityFactor[i] = 0;
     for(int j = 0; j < allSubcriterias; j++) {
-      globalPriorityFactor[i] += alternativeVectors[i][j];
+      globalPriorityFactor[i] += alternativeVectors[j][i];
       } 
     cout<<"\nThe estimate of Alternative No. "<<i+1<<" = "<<globalPriorityFactor[i];
 
@@ -119,27 +119,45 @@ void enterBasicData(int &criteriaAmount, int &subcriteriaAmount, int &alternativ
   
   cout << "Enter the amount of criterias ";
   cin >> criteriaAmount;
-
-  while (!(criteriaAmount)) {
-    cout << "Enter the amount of criterias ";
-    cin >> criteriaAmount;
+  while(1) {
+    if(cin.fail()) {
+      cin.clear();
+      cout<<"wrong value of the criterias amount\n";
+      cin.ignore();
+      cin>>criteriaAmount;
+    }
+    if(!cin.fail()) break;
   }
   name(criteriaAmount);
   
-  do {
-    cout << "\nEnter the amount of sub-criterias: ";
-    cin >> subcriteriaAmount;
-  } while (!(subcriteriaAmount <= 10));
-  
+  cout << "\nEnter the amount of sub-criterias: ";
+  cin >> subcriteriaAmount;
+  while(1) {
+    if(cin.fail()) {
+      cin.clear();
+      cout<<"wrong value of the subcriterias amount\n";
+      cin.ignore();
+      cin>>subcriteriaAmount;
+    }
+    if(!cin.fail()) break;
+  }
+    
   for(int i = 1; i <= criteriaAmount; i++) {
     cout<<"\nSub-criterias of criteria "<<i<<"\n";
     name(subcriteriaAmount);
   }
 
-  do {
-    cout << "\nEnter the amount of alternatives: ";
-    cin >> alternativeAmount;    
-  } while(alternativeAmount);
+  cout << "\nEnter the amount of alternatives: ";
+  cin >> alternativeAmount;    
+  while(1) {
+    if(cin.fail()) {
+      cin.clear();
+      cout<<"wrong value of the alternatives amount\n";
+      cin.ignore();
+      cin>>alternativeAmount;
+    }
+    if(!cin.fail()) break;
+  }
 
   name(alternativeAmount);
 }
@@ -151,7 +169,12 @@ void name(int n)
   {
     cout << "The name of " << i <<" ";
     cin.get();
-    getline(cin, a);
+    getline(cin, a); 
+
+    while(!(a[0] >= 'A' && a[0] <= 'Z' || a[0] >= 'a' && a[0] <= 'z')) {
+      cout<<"wrong name of problem\n";
+      getline(cin, a);
+    }
   }
 }
 
@@ -165,6 +188,25 @@ void criteriaEvaluation(double* criteriaEstimate, int criteriaAmount) {
   for(int i = 0; i < criteriaAmount; i++) {
     cout<<"\n\tcriteria No. "<<i+1<<" = ";
     cin>>criteriaEstimate[i];
+
+    while(1) {
+      if(cin.fail()) {
+        cin.clear();
+        cout<<"\twrong value of the criteria estimate(enter a number)\n";
+        cin.ignore();
+        cin>>criteriaEstimate[i];
+      }
+      if(!cin.fail()) {
+        if(criteriaEstimate[i] >= 0 && criteriaEstimate[i] <= 10) break;
+        else {
+          cout<<"\tenter estimate between 0 and 10\n";
+          cin.clear();
+          cin.ignore();
+          cin>>criteriaEstimate[i];
+        }
+      }
+    }
+
     sum += criteriaEstimate[i];
   }
 
@@ -193,6 +235,23 @@ void subcriteriaEvaluation(double** subcriteriaEstimate, int criteriaAmount, int
     for(int j = 0; j < subcriteriaAmount; j++) {
       cout<<"\n\tSubcriteria No. "<<j + 1<<" = ";
       cin>>subcriteriaEstimate[i][j];
+      while(1) {
+        if(cin.fail()) {
+          cin.clear();
+          cout<<"\twrong value of the criteria estimate(enter a number)\n";
+          cin.ignore();
+          cin>>subcriteriaEstimate[i][j];
+        }
+        if(!cin.fail()) {
+          if(subcriteriaEstimate[i][j] >= 0 && subcriteriaEstimate[i][j] <= 10) break;
+          else {
+            cout<<"\tenter estimate between 0 and 10\n";
+            cin.clear();
+            cin.ignore();
+            cin>>subcriteriaEstimate[i][j];
+          }
+        }
+      }
     }
   }
 
@@ -236,6 +295,23 @@ void alternativeEvaluation(double** alternativeEstimate, int allSubcriterias, in
     for(int j = 0; j < alternativeAmount; j++) {
       cout<<"\n\talternative No. "<<j + 1<<" = ";
       cin>>alternativeEstimate[i][j];
+      while(1) {
+        if(cin.fail()) {
+          cin.clear();
+          cout<<"\twrong value of the criteria estimate(enter a number)\n";
+          cin.ignore();
+          cin>>alternativeEstimate[i][j];
+        }
+        if(!cin.fail()) {
+          if(alternativeEstimate[i][j] >= 0 && alternativeEstimate[i][j] <= 10) break;
+          else {
+            cout<<"\tenter estimate between 0 and 10\n";
+            cin.clear();
+            cin.ignore();
+            cin>>alternativeEstimate[i][j];
+          }
+        }
+      }
       sum[i] += alternativeEstimate[i][j];
     }
   }

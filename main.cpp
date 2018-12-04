@@ -2,229 +2,332 @@
 #include <sstream>
 #include <iomanip>
 #include <fstream>
-// using namespace std;
+using namespace std;
 
-void VVOD(int &, int &, int &);
+void enterBasicData(int&, int&, int&);
 void name(int);
-void CountCriteria(double *, int);
-void CountUnderCriteria(double **, int, int);
-void CountAlternative(double **, int &, int);
+void criteriaEvaluation(double*, int);
+void subcriteriaEvaluation(double**, int, int);
+void alternativeEvaluation(double**, int, int);
 
-using std::setw;
+int main() {
+  string problem;
+  cout << "Enter the name of problem ";
+  getline(cin, problem);
+  while(!(problem[0] >= 'A' && problem[0] <= 'Z' || problem[0] >= 'a' && problem[0] <= 'z')) {
+    cout<<"\nwrong name of problem ";
+    getline(cin, problem);
+  }
 
-int main()
-{
-  std::string Problem;
-  std::cout << "Enter the name of problem ";
-  std::getline(std::cin, Problem);
-  int Criteria, Undercriteria, Alternative;
-  VVOD(Criteria, Undercriteria, Alternative);
-  std::cout << "\n\nPlase, estimate your criterias, sub-criterias and alternatives from1 to 10.\n"
-            << "for example,\n 1 - the importance is very low,\n 5 - middle importance,\n 10 - the importance is very high";
-  double *ValueOfCriteria;
+  //ввод основных данных
+  int criteriaAmount, subcriteriaAmount, alternativeAmount;
+  enterBasicData(criteriaAmount, subcriteriaAmount, alternativeAmount);
+
   //создание массива оценки критериев
-  ValueOfCriteria = new double[Criteria];
-  CountCiteria(ValueOfCriteria, Criteria);
-  std::cout.precidion(3);
-  std::cout << "\n";
-  std::cout << "\nThe rates of criteria";
-  //вывод на экран и в файл коэффициентов приоритетов критериев
-  for (int i = 0; i < Criteria; i++)
-  {
-    std::cout << "\n\tCritria №" << i + 1 << "=" << ValueOfCriteria[i];
-  }
+  double* criteriaEstimate;
+  criteriaEstimate = new double[criteriaAmount];
+  criteriaEvaluation(criteriaEstimate, criteriaAmount);
+
   //создание матрицы оценки подкритериев
-  for (int i = 0; i < Criteria; i++)
-  {
-    ValueOfCriteria[i] = new double[Undercriteria];
+  double** subcriteriaEstimate = new double*[criteriaAmount];
+  for(int i = 0; i < criteriaAmount; i++) {
+    subcriteriaEstimate[i] = new double[subcriteriaAmount];
   }
-  CountUnderCriteria(ValueOfUndercriteria, Criteria, Undercriteria);
-  std::cout << "\nThe rates pf sub-criteria\n";
-  //вывод на экран коэффициентов приоритетов подкритериев
-  for (int i = 0; i < Criteria; i++)
-  {
-    for (int j = 0; j < Undercriteria; j++)
-    {
-      std::cout << std::fixed << std::setprecision(3) << setw(10) << "[" << i + 1 << "][" << j + 1 << "]=" << ValueOfUndercriteria[i][j] << setw(10);
-    }
-    std::cout << "\n";
+  subcriteriaEvaluation(subcriteriaEstimate, criteriaAmount, subcriteriaAmount);
+
+  int allSubcriterias = subcriteriaAmount * criteriaAmount;
+  //создание матрицы оценки альтернатив
+  double** alternativeEstimate = new double*[allSubcriterias];
+  for(int i = 0; i < allSubcriterias; i++) {
+    alternativeEstimate[i] = new double[alternativeAmount];
   }
-  int NumberOfUndercria = Undercriteria * Criteria;
-  //создание матрицы оцегки альтернатив
-  double **ValueOfAlternatives = new double *[NumberOfUndercria];
-  for (int i = 0; i < NumberOfUndercria; i++)
-  {
-    ValueOfAlternatives[i] = new double[Alternative];
-  }
-  CountAlternative(CountAlternative, NumberOfUndercria, Alternative);
-  std::cout << "\nThe rates of altrnatives\n";
-  //вывод на экран и в файл коэффициентов локальных приоритетов альтернатив
-  for (int i = 0; i < NumberOfUndercria; i++)
-  {
-    for (int j = 0; j < Alternative; j++)
-    {
-      std::cout << std::fixed << std::setprecision(3) << setw(10) << "[" << i + 1 << "][" << j + 1 << "]=" << ValueOfAlternatives[i][j] << setw(10);
-    }
-    std::cout << "\n";
-  }
-  double *MatrixCU;
-  //создание матрицы коэффициентов приоритетов (подкритей * критерий)
-  MatrixCU = new double[NumberOfUndercria];
-  for (int i = 0, e = 0; i < Criteria; i++)
-  {
-    for (int j = 0; j < Undercriteria; j++)
-    {
-      MatrixCU[e] = ValueOfCriteria[i] * ValueOfUndercriteria[i][j];
-      e++;
+  alternativeEvaluation(alternativeEstimate, allSubcriterias, alternativeAmount);
+
+  //создание матрицы коэффициентов приоритетов (критерий * подкритерий)
+  double* priorityFactor;
+  priorityFactor = new double[allSubcriterias];
+
+  for(int i = 0, k = 0; i < criteriaAmount; i++) {
+    for(int j = 0; j < subcriteriaAmount; j++) {
+      priorityFactor[k] = criteriaEstimate[i] * subcriteriaEstimate[i][j];
+      k++;
     }
   }
-  delete[] ValueOfCriteria;
+  cout<<"\npriorityFactor\n";
+  for(int i = 0; i < allSubcriterias; i++) {
+    cout<<i<<" = "<<priorityFactor[i]<<"  ";
+  }
+  // delete[] criteriaEstimate;
+
   //создание матрицы векторов альтернатив по подкритериям
-  double **MatrixCUA = new double *[NumberOfUndercria];
-  for (int i = 0; i < NumberOfUndercria; i++)
-  {
-    MatrixCUA[i] = new double[Alternative];
+  double** alternativeVectors = new double*[allSubcriterias];
+  for(int i = 0; i < allSubcriterias; i++) {
+    alternativeVectors[i] = new double[alternativeAmount];
   }
-  for (int i = 0; i < Alternative; i++)
-  {
-    for (int j = 0; j < NumberOfUndercria; j++)
-    {
-      MatrixCUA[i][j] = ValueOfAlternatives * MatrixCU[j];
+
+  for(int i = 0; i < allSubcriterias; i++){
+    for(int j = 0; j < alternativeAmount; j++) {
+      alternativeVectors[i][j] = alternativeEstimate[i][j] * priorityFactor[i];
     }
   }
-  for (int i = 0; i < NumberOfUndercria; i++)
-  {
-    delete[] ValueOfAlternatives[i];
-  }
-  delete[] ValueOfAlternatives;
-  delete[] MatrixCU;
-  double *Array;
-  //созжание массива коэффициентов глобальныъ пиоритеов альтернатив
-  Array = new double[Alternative];
-  for (int i = 0; i < Alternative; i++)
-  {
-    Array[i] = 0;
-  }
-  double max = 0;
-  int num;
-  for (int i = 0; i < Alternative; i++)
-  {
-    for (int j = 0; j < NumberOfUndercria; j++)
-    {
-      Array[i] += MatrixCUA[i][j];
+  cout<<"\nalternativeVectors\n";
+  for(int i = 0; i < allSubcriterias; i++){
+    for(int j = 0; j < alternativeAmount; j++) {
+      cout<<setprecision(3)<<setw(10)<<"[" << i + 1 << "][" << j + 1 << "]=" << alternativeVectors[i][j]<<setw(10);
     }
-    std::cout << "\nThe value of Alternative №" << i + 1 << "=" << Array[i] << "\n";
-    //выбор подходящего варината среди альтернатив
-    if (Array[i] >= max)
-    {
-      max = Array[i];
+    cout<<"\n";
+  }
+  // for (int i = 0; i < allSubcriterias; i++)
+  // {
+  //   delete[] alternativeVectors[i];
+  // }
+  // delete[] alternativeVectors;
+  // delete[] priorityFactor;
+
+  //создание массива коэффициентов глобальных приоритетов альтернатив
+  double* globalPriorityFactor;
+  globalPriorityFactor = new double[alternativeAmount];
+  double max = 0; int num;
+  for(int i = 0; i < alternativeAmount; i++) {
+    globalPriorityFactor[i] = 0;
+    for(int j = 0; j < allSubcriterias; j++) {
+      globalPriorityFactor[i] += alternativeVectors[j][i];
+      } 
+    cout<<"\nThe estimate of Alternative No. "<<i+1<<" = "<<globalPriorityFactor[i];
+
+    if(globalPriorityFactor[i] >= max) {
+      max = globalPriorityFactor[i];
       num = i + 1;
     }
+  } 
+
+  cout<<"\nThe best alternative is No. "<<num<<" = "<<max<<"\n";
+  for(int i = 0; i < allSubcriterias; i++) {
+    delete[]alternativeVectors[i];
   }
-  std::cout << "\nThe best alternative is №" << num << "=" << max << "\n";
-  for (int i = 0; i < NumberOfUndercria; i++)
-  {
-    delete[] MatrixCUA[i];
-  }
-  delete[] MatrixCUA;
-  delete[] Array;
+  delete[]alternativeVectors;
+  delete[]globalPriorityFactor;
+  
 
   system("pause");
   return 0;
 }
 
+//==============================================================
 //функция ввода начальных значений
-void VVOD(int &Criteria, int &Undercriteria, int &Alterntive)
-{
-  std::cout << "Enter the number of criteria" << endl;
-  std::cin >> Criteria;
-  name(Criteria);
-  std::cout << "Enter the number of sub-criteria: ";
-  std::cin >> Undercriteria;
-  int NumberOfUndercriteria = Undecriteria * Criteria;
-  name(NumberOfUndercriteria);
-  std::cout << "Enter the number of alternatives: ";
-  std::cin >> Alternative;
-  name(Alternative);
+void enterBasicData(int &criteriaAmount, int &subcriteriaAmount, int &alternativeAmount) {
+  
+  cout << "Enter the amount of criterias ";
+  cin >> criteriaAmount;
+  while(1) {
+    if(cin.fail()) {
+      cin.clear();
+      cout<<"wrong value of the criterias amount\n";
+      cin.ignore();
+      cin>>criteriaAmount;
+    }
+    if(!cin.fail()) break;
+  }
+  name(criteriaAmount);
+  
+  cout << "\nEnter the amount of sub-criterias: ";
+  cin >> subcriteriaAmount;
+  while(1) {
+    if(cin.fail()) {
+      cin.clear();
+      cout<<"wrong value of the subcriterias amount\n";
+      cin.ignore();
+      cin>>subcriteriaAmount;
+    }
+    if(!cin.fail()) break;
+  }
+    
+  for(int i = 1; i <= criteriaAmount; i++) {
+    cout<<"\nSub-criterias of criteria "<<i<<"\n";
+    name(subcriteriaAmount);
+  }
+
+  cout << "\nEnter the amount of alternatives: ";
+  cin >> alternativeAmount;    
+  while(1) {
+    if(cin.fail()) {
+      cin.clear();
+      cout<<"wrong value of the alternatives amount\n";
+      cin.ignore();
+      cin>>alternativeAmount;
+    }
+    if(!cin.fail()) break;
+  }
+
+  name(alternativeAmount);
 }
 
 void name(int n)
 {
-  std::string a;
-  for (int i = ; i < n; i++)
+  string a;
+  for (int i = 1; i <= n; i++)
   {
-    std::cout << "\nEnter the name of" << i + << " ";
-    std::cin.get();
-    std::getline(std::cin, a);
-    //std::cin>>a;
-    //std::cout<<a<<std::endl;
+    cout << "The name of " << i <<" ";
+    cin.get();
+    getline(cin, a); 
+
+    while(!(a[0] >= 'A' && a[0] <= 'Z' || a[0] >= 'a' && a[0] <= 'z')) {
+      cout<<"wrong name of problem\n";
+      getline(cin, a);
+    }
   }
 }
 
-//Функция ввода оценки критериев с клавиатуры и расчета векторов
-void CountCriteria(double *ValueOfCriteria, int numCriteria)
-{
-  double *CriteriRate;
-  CriteriaRate = new double[numCriteria];
-  double Sum = 0;
-  std::cout.precision();
-  for (int i = 0; i < numCriteria; i++)
-  {
-    std::cout << "\n\tCriteria № " << i + 1 << "=";
-    std::cin >> CriteriaRate[i];
-    Sum += CriteriaRate[i];
-  }
-  for (int i = 0; i < numCriteria; i++)
-  {
-    ValueOfCriteria[i] = CritariaRate[i] / Sum;
-  }
-  delete[] CriteriaRate;
-}
-//функция ввода оценки подкритериев с клавиатуры и расчета векторов
-void CountUnderCriteria(double **ValueOfUndercriteria, int numCriteria, int numUndercriteria)
-{
-  double *Sum;
-  Sum = new double[numCriteria];
-  double **UndercriteriaRATE = new double *[numCriteria];
-  std::cout.precision(3);
-  for (int i = 0; i < numCriteria; i++)
-  {
-    UndercriteriaRATE[i] = new double[numUndercriteria];
-  }
-  for (int i = 0; i < numCriteria; i++)
-  {
-    Sum[i] = 0;
-  }
-  std::cout << "\n\nEnter the value of sub-criteria for each criteria (from 1 to 10):";
-  for (int i = 0; i < numCriteria; i++)
-  {
-    std::cout << "\nCriteria № " << i + 1 << ":\n";
-    for (int j = 0; j < numUndercriteria; j++)
-    {
-      std::cout << "\tSub-criteria № " << j + 1 << "=";
-      std::cin >> UndercriteriaRATE[i][j];
+//ввод, расчет и вывод оценок критериев
+void criteriaEvaluation(double* criteriaEstimate, int criteriaAmount) {
+  cout << "\n\nPlase, estimate your criterias, sub-criterias and alternatives from1 to 10.\n"<< "for example,\n 1 - the importance is very low,\n 5 - middle importance,\n 10 - the importance is very high";
+
+  double sum = 0;
+  cout.precision(3);
+
+  for(int i = 0; i < criteriaAmount; i++) {
+    cout<<"\n\tcriteria No. "<<i+1<<" = ";
+    cin>>criteriaEstimate[i];
+
+    while(1) {
+      if(cin.fail()) {
+        cin.clear();
+        cout<<"\twrong value of the criteria estimate(enter a number)\n";
+        cin.ignore();
+        cin>>criteriaEstimate[i];
+      }
+      if(!cin.fail()) {
+        if(criteriaEstimate[i] >= 0 && criteriaEstimate[i] <= 10) break;
+        else {
+          cout<<"\tenter estimate between 0 and 10\n";
+          cin.clear();
+          cin.ignore();
+          cin>>criteriaEstimate[i];
+        }
+      }
     }
+
+    sum += criteriaEstimate[i];
   }
-  for (int i = 0; i < numCriteria; i++)
-  {
-    for (int j = 0; j < numUndercriteria; j++)
-    {
-      Sum[i] += UndercriteriaRATE[i][j];
-    }
+
+  for(int i = 0; i < criteriaAmount; i++) {
+    criteriaEstimate[i] = criteriaEstimate[i] / sum;
   }
-  for (int i = 0; i < numCriteria; i++)
-  {
-    for (int j = 0; j < numUndercriteria; j++)
-    {
-      ValueOfUndercriteria[i][j] = UndercriteriaRATE[i][j] / Sum[i];
-    }
+  
+  cout << "\nThe evaluations of criterias";
+  for(int i = 0; i < criteriaAmount; i++) {
+    cout<< "\n\tCriteria No. " << i + 1 << "=" <<criteriaEstimate[i]<<"  ";
   }
-  delete[] Sum;
-  for (int i = 0; i < numCriteria; i++)
-  {
-    delete[] UndercriteriaRATE[i];
-  }
-  delete[] UndercriteriaRATE;
+  cout<<endl;
 }
 
-void CountAlternative(double **ValueOfAlternative, int &NumberOfUndercriteria, int numAlternative)
+//ввод, расчет и вывод оценок подкритериев
+void subcriteriaEvaluation(double** subcriteriaEstimate, int criteriaAmount, int subcriteriaAmount) {
+  double *sum;
+  sum = new double[criteriaAmount];
+  for(int i = 0; i < criteriaAmount; i++) {
+    sum[i] = 0;
+  }
+  
+  cout<<"\n\nEnter value of subcriteria for each criteria (from 1 to 10):";
+  for(int i = 0; i < criteriaAmount; i++) {
+    cout<<"\nCriteria No. "<<i + 1;
+    for(int j = 0; j < subcriteriaAmount; j++) {
+      cout<<"\n\tSubcriteria No. "<<j + 1<<" = ";
+      cin>>subcriteriaEstimate[i][j];
+      while(1) {
+        if(cin.fail()) {
+          cin.clear();
+          cout<<"\twrong value of the criteria estimate(enter a number)\n";
+          cin.ignore();
+          cin>>subcriteriaEstimate[i][j];
+        }
+        if(!cin.fail()) {
+          if(subcriteriaEstimate[i][j] >= 0 && subcriteriaEstimate[i][j] <= 10) break;
+          else {
+            cout<<"\tenter estimate between 0 and 10\n";
+            cin.clear();
+            cin.ignore();
+            cin>>subcriteriaEstimate[i][j];
+          }
+        }
+      }
+    }
+  }
+
+  for(int i = 0; i < criteriaAmount; i++) {
+    for(int j = 0; j < subcriteriaAmount; j++) {
+      sum[i] += subcriteriaEstimate[i][j];
+    }
+  }
+
+  for(int i = 0; i < criteriaAmount; i++) {
+    for(int j = 0; j < subcriteriaAmount; j++) {
+      subcriteriaEstimate[i][j] = subcriteriaEstimate[i][j] / sum[i];
+    }
+  }
+
+  delete[]sum;
+  cout<<endl;
+  
+
+  for(int i = 0; i < criteriaAmount; i++) {
+    for(int j = 0; j < subcriteriaAmount; j++) {
+      cout<<setprecision(3)<<setw(5)<<"[" << i + 1 << "][" << j + 1 << "]=" << subcriteriaEstimate[i][j]<<setw(5);
+    }
+    cout<<"\n";
+  }
+}
+
+//ввод, расчет и вывод оценок критериев
+void alternativeEvaluation(double** alternativeEstimate, int allSubcriterias, int alternativeAmount) {
+  cout<<"\n\n\nEnter the value of alternatives for each sub-criteria: \n";
+
+  double* sum;
+  sum = new double[allSubcriterias];
+
+  for(int i = 0; i < allSubcriterias; i++) {
+    sum[i] = 0;
+  }
+
+  for(int i = 0; i < allSubcriterias; i++) {
+    cout<<"\nsubcriteria No. "<<i + 1;
+    for(int j = 0; j < alternativeAmount; j++) {
+      cout<<"\n\talternative No. "<<j + 1<<" = ";
+      cin>>alternativeEstimate[i][j];
+      while(1) {
+        if(cin.fail()) {
+          cin.clear();
+          cout<<"\twrong value of the criteria estimate(enter a number)\n";
+          cin.ignore();
+          cin>>alternativeEstimate[i][j];
+        }
+        if(!cin.fail()) {
+          if(alternativeEstimate[i][j] >= 0 && alternativeEstimate[i][j] <= 10) break;
+          else {
+            cout<<"\tenter estimate between 0 and 10\n";
+            cin.clear();
+            cin.ignore();
+            cin>>alternativeEstimate[i][j];
+          }
+        }
+      }
+      sum[i] += alternativeEstimate[i][j];
+    }
+  }
+
+  for(int i = 0; i < allSubcriterias; i++) {
+    for(int j = 0; j < alternativeAmount; j++) {
+      alternativeEstimate[i][j] = alternativeEstimate[i][j] / sum[i];
+    }
+  }
+
+  delete[]sum;
+
+  for(int i = 0; i < allSubcriterias; i++) {
+    for(int j = 0; j < alternativeAmount; j++) {
+      cout<<setprecision(3)<<setw(5)<<"[" << i + 1 << "][" << j + 1 << "]=" << alternativeEstimate[i][j]<<setw(5);
+    }
+    cout<<"\n";
+  }
+}

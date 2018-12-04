@@ -164,6 +164,7 @@ void enterBasicData(int &criteriaAmount, int &subcriteriaAmount, int &alternativ
 
 void name(int n)
 {
+  //при вводе одной буквы несколько раз выводи ошибку
   string a;
   for (int i = 1; i <= n; i++)
   {

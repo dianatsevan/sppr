@@ -164,19 +164,25 @@ void enterBasicData(int &criteriaAmount, int &subcriteriaAmount, int &alternativ
 
 void name(int n)
 {
+  //при вводе одной буквы несколько раз выводи ошибку
   string a;
   for (int i = 1; i <= n; i++)
   {
     cout << "The name of " << i <<" ";
     cin.get();
     getline(cin, a); 
-
-    while(!(a[0] >= 'A' && a[0] <= 'Z' || a[0] >= 'a' && a[0] <= 'z')) {
-      cout<<"wrong name of problem\n";
-      getline(cin, a);
-    }
-  }
-}
+    while(a.length()<2) {
+       for(int j = 0; j<=a.length(); j++){
+          if(!(a[j] >= 'A' && a[j] <= 'Z' || a[j] >= 'a' && a[j] <= 'z')) {
+                cout<<"wrong name of problem\n";
+                cin.get();
+                getline(cin, a);
+                break;
+           }
+        }
+     }
+   }
+ }
 
 //ввод, расчет и вывод оценок критериев
 void criteriaEvaluation(double* criteriaEstimate, int criteriaAmount) {
